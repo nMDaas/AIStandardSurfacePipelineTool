@@ -15,8 +15,8 @@ if folder not in sys.path:
 
 if 'Plugin' in sys.modules:
     del sys.modules['Plugin']
-if 'Plugin.shader_plugin' in sys.modules:
-    del sys.modules['Plugin.shader_plugin']
+if 'Plugin.sunlit_path' in sys.modules:
+    del sys.modules['Plugin.sunlit_path']
 import Plugin.shader_plugin
 
 window = Plugin.shader_plugin.showWindow()
