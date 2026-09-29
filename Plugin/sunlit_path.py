@@ -19,7 +19,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle("Dialog")
+        self.setWindowTitle("Apply Textures")
         self.resize(463, 100)
 
         self.create_widgets()
