@@ -26,6 +26,8 @@ class TextureFolderDialog(QtWidgets.QDialog):
         self.create_layouts()
         self.create_connections()
 
+    # =========================== USER INTERFACE ===========================
+
     def create_widgets(self):
 
         # Texture folder section
@@ -36,6 +38,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
 
         # Warning message
         self.warnings = QtWidgets.QLabel("")
+        self.warnings.setStyleSheet("color: red;")
 
         # Apply button
         self.apply_button = QtWidgets.QPushButton("Apply")
