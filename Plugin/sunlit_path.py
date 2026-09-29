@@ -89,8 +89,19 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.filename_label.setText(folder)
 
     def apply(self):
+        selectedObject = self.getSelectedObjects()
+        print(selectedObject)
 
-        print("Apply clicked")
+    # =========================== APPLY LOGIC ===========================
+
+    # Set object/group to be textuerd
+    def getSelectedObjects(self):
+        selected_objects = cmds.ls(selection=True)
+        if len(selected_objects) == 0:
+            self.warnings.setText("Must select an object or group of objects")
+        else:
+            self.warnings.setText("")
+            return selected_objects[0]
 
 
 def show():
