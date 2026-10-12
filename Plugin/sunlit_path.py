@@ -192,6 +192,13 @@ class TextureFolderDialog(QtWidgets.QDialog):
             # Create a place2dTexture node
             place2d_baseColor = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_baseColor_{material}')
 
+            # Create a file texture node for Roughness
+            roughnessNodeName = material_name + "_" + "Roughness" + "_" + textureNum
+            roughness_file_node = cmds.shadingNode('file', asTexture=True, name=roughnessNodeName)
+            roughnessFilePath = roughnessFile
+            cmds.setAttr(f"{roughness_file_node}.fileTextureName", roughnessFilePath, type="string")
+            cmds.setAttr(f'{roughness_file_node}.colorSpace', 'Raw', type='string')
+
             """
             # Create a file texture node for Normal
             normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
@@ -208,14 +215,6 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{metalness_file_node}.fileTextureName", metalnessFilePath, type="string")
             cmds.setAttr(f"{metalness_file_node}.alphaIsLuminance", True)
             cmds.setAttr(f'{metalness_file_node}.colorSpace', 'Raw', type='string')
-    
-            # Create a file texture node for Roughness
-            roughnessNodeName = material_name + "_" + "Roughness" + "_" + textureNum
-            roughness_file_node = cmds.shadingNode('file', asTexture=True, name=roughnessNodeName)
-            roughnessFilePath = roughnessFile
-            cmds.setAttr(f"{roughness_file_node}.fileTextureName", roughnessFilePath, type="string")
-            cmds.setAttr(f"{roughness_file_node}.alphaIsLuminance", True)
-            cmds.setAttr(f'{roughness_file_node}.colorSpace', 'Raw', type='string')
     
             # Create a file texture node for Height
             heightNodeName = material_name + "_" + "Height" + "_" + textureNum
@@ -270,14 +269,15 @@ class TextureFolderDialog(QtWidgets.QDialog):
             displacement_shader = cmds.shadingNode('displacementShader', asShader=True)
             """
     
-            
-            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # Connect baseColor file to multiplyDivide
+            # file nodes -> standard surface node
+            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # Connect baseColor file to material
+            cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
 
             #cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
             #cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # Connect bump2d to Normal Camera of material
             #cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # Connect normal file to bump2d
             #cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
-            #cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
+            #
             #cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
             #cmds.connectAttr(f"{displacement_shader}.displacement", f"{shading_group}.displacementShader", force=True)
             
