@@ -188,6 +188,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
             baseColor_file_node = cmds.shadingNode('file', asTexture=True, name=baseColorNodeName)
             baseColorFilePath = baseColorFile
             cmds.setAttr(f"{baseColor_file_node}.fileTextureName", baseColorFilePath, type="string")
+            cmds.setAttr(f'{baseColor_file_node}.colorSpace', 'Raw', type='string')
 
             # Create a place2dTexture node
             place2d_baseColor = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_baseColor_{material}')
