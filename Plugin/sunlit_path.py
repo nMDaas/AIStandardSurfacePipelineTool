@@ -247,7 +247,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
                 ('outUvFilterSize', 'uvFilterSize')
             ]
     
-            # Connect place2dTexture node to file nodes
+            # Connect all place2dTexture nodes to file nodes
             # place2d_baseColor --> baseColor_file_node
             for src, dest in connections:
                 cmds.connectAttr(f"{place2d_baseColor}.{src}", f"{baseColor_file_node}.{dest}", force=True)
