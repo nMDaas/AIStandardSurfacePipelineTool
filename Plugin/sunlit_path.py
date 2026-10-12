@@ -202,7 +202,11 @@ class TextureFolderDialog(QtWidgets.QDialog):
             # Create a place2dTexture node
             place2d_roughness = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_roughness_{material}')
 
-            """
+            # Create a bump2d node
+            bump2dNodeName = "bump2dname" + "_" + material_name
+            bump2d_node = cmds.shadingNode('bump2d', asUtility=True, name=bump2dNodeName)
+            cmds.setAttr(bump2d_node + '.bumpInterp', 1)
+
             # Create a file texture node for Normal
             normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
             normal_file_node = cmds.shadingNode('file', asTexture=True, name=normalNodeName)
@@ -210,23 +214,6 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{normal_file_node}.fileTextureName", normalFilePath, type="string")
             cmds.setAttr(f"{normal_file_node}.alphaIsLuminance", True)
             cmds.setAttr(f'{normal_file_node}.colorSpace', 'Raw', type='string')
-    
-            # Create a file texture node for Metalness
-            metalnessNodeName = material_name + "_" + "Metalness" + "_" + textureNum
-            metalness_file_node = cmds.shadingNode('file', asTexture=True, name=metalnessNodeName)
-            metalnessFilePath = metalnessFile
-            cmds.setAttr(f"{metalness_file_node}.fileTextureName", metalnessFilePath, type="string")
-            cmds.setAttr(f"{metalness_file_node}.alphaIsLuminance", True)
-            cmds.setAttr(f'{metalness_file_node}.colorSpace', 'Raw', type='string')
-    
-            # Create a file texture node for Height
-            heightNodeName = material_name + "_" + "Height" + "_" + textureNum
-            height_file_node = cmds.shadingNode('file', asTexture=True, name=heightNodeName)
-            heightFilePath = heightFile
-            cmds.setAttr(f"{height_file_node}.fileTextureName", heightFilePath, type="string")
-            cmds.setAttr(f"{height_file_node}.alphaIsLuminance", True)
-            cmds.setAttr(f'{height_file_node}.colorSpace', 'Raw', type='string')
-            """
 
             connections = [
                 ('coverage', 'coverage'),
@@ -265,10 +252,6 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{multiply_divide_node}.operation", 1) # Set operation as Multiply (1: multiply, 2: divide, 3: power)
             cmds.setAttr(f"{multiply_divide_node}.input2", 1, 1, 1, type="double3")
     
-            # Create a bump2d node
-            bump2d_node = cmds.shadingNode('bump2d', asUtility=True, name='bump2d1')
-            cmds.setAttr(bump2d_node + '.bumpInterp', 1)
-    
             # Create a displacement shader
             displacement_shader = cmds.shadingNode('displacementShader', asShader=True)
             """
@@ -276,10 +259,10 @@ class TextureFolderDialog(QtWidgets.QDialog):
             # file nodes -> standard surface node
             cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # Connect baseColor file to material
             cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
+            cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # bump2d -> material (Normal Camera)
+            cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # normal -> bump2d
 
             #cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
-            #cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # Connect bump2d to Normal Camera of material
-            #cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # Connect normal file to bump2d
             #cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
             #
             #cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
