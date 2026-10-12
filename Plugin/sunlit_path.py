@@ -93,7 +93,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.filename_label.setText(folder)
 
     def apply(self):
-        selectedObject = self.getSelectedObjects()
+        selectedObject = self.getSelectedObjects() # TODO: this can be 1 or many, but assuming 1 for now
 
         if self.folder_path == "":
             self.warnings.setText("Must select a folder path to folder textures")
