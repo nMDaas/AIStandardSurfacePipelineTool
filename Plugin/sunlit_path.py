@@ -93,13 +93,16 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.filename_label.setText(self.folder_path)
 
     def apply(self):
-        selectedObject = self.getSelectedObjects() # TODO: this can be 1 or many, but assuming 1 for now
+        selectedObjects = self.getSelectedObjects() # TODO: this can be 1 or many, but assuming 1 for now
+
+        print("Selected Objects: ", selectedObjects)
 
         if self.folder_path == "":
             self.warnings.setText("Must select a folder path to folder textures")
         else:
-            mat_name = self.createTextures()
-            #self.apply_textures(selectedObject, mat_name)
+            for obj in selectedObjects:
+                mat_name = self.createTextures(obj)
+                #self.apply_textures(selectedObject, mat_name)
 
     # =========================== APPLY LOGIC ===========================
 
@@ -110,56 +113,56 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.warnings.setText("Must select an object or group of objects")
         else:
             self.warnings.setText("")
-            return selected_objects[0]
+            return selected_objects
 
-    def createTextures(self):
-        global folder_path
-        global texture_files
+    
+    def createTextures(self, objName):
+        texture_files = [
+            f for f in os.listdir(self.folder_path)
+            if os.path.isfile(os.path.join(self.folder_path, f))
+            and f.endswith('.png')
+            and objName in f
+        ]
 
-        # get all files in folder_path
-        texture_files = [f for f in os.listdir(self.folder_path) if os.path.isfile(os.path.join(self.folder_path, f))]
-        
-        result = ""
+        print("Object name:", objName)
+        print("Matching files:", texture_files)
 
-        # organize texture_files by texture numbers
         texture_groups = {}
-        for file in texture_files:
-            if file.endswith('.png'):
-                # get texture number
-                length = len(file)
-                strTemp = file[length - 8:] # texture number + .png
-                textureNum = strTemp[:4]
 
-                if textureNum in texture_groups:
-                    # textureNum exists, append file to the existing array
-                    texture_groups[textureNum].append(file)
-                else:
-                    # textureNum does not exist, initialize a new array with the value
-                    texture_groups[textureNum] = [file]
-        
-        # iterate through texture_groups and create textures
-        for key,value in texture_groups.items():
-            # extract name
-            my_string = value[0]
-            index = my_string.find('_')
-            result = my_string[:index]
-            material_name = result + key
-            #print("material_name", material_name)
+        for file in texture_files:
+            strTemp = file[-8:]  # texture number + .png
+            textureNum = strTemp[:4]
+
+            if textureNum not in texture_groups:
+                texture_groups[textureNum] = []
+
+            texture_groups[textureNum].append(file)
+
+        for key, value in texture_groups.items():
+            material_name = objName + key
+
+            baseColorFile = None
+            normalFile = None
+            roughnessFile = None
 
             for file in value:
                 if "BaseColor" in file:
                     baseColorFile = file
-                if "Normal" in file:
+                elif "Normal" in file:
                     normalFile = file
-                if "Roughness" in file:
+                elif "Roughness" in file:
                     roughnessFile = file
 
-            # clean previously created nodes with same name
             self.cleanNodes(material_name)
+            self.createMaterial(
+                material_name,
+                baseColorFile,
+                normalFile,
+                roughnessFile,
+                key
+            )
 
-            self.createMaterial(material_name, baseColorFile, normalFile, roughnessFile, key)
-
-        return result
+        return objName
     
     # clean nodes for this texture
     def cleanNodes(self, texture_name):
