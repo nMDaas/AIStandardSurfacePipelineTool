@@ -246,28 +246,12 @@ class TextureFolderDialog(QtWidgets.QDialog):
                 cmds.connectAttr(f"{place2d_baseColor}.{src}", f"{baseColor_file_node}.{dest}", force=True)
                 cmds.connectAttr(f"{place2d_roughness}.{src}", f"{roughness_file_node}.{dest}", force=True)
                 cmds.connectAttr(f"{place2d_normal}.{src}", f"{normal_file_node}.{dest}", force=True)
-
-            """
-            # Create a multiplyDivide node
-            multiply_divide_node = cmds.shadingNode('multiplyDivide', asUtility=True, name='multiplyDivide1')
-            cmds.setAttr(f"{multiply_divide_node}.operation", 1) # Set operation as Multiply (1: multiply, 2: divide, 3: power)
-            cmds.setAttr(f"{multiply_divide_node}.input2", 1, 1, 1, type="double3")
-    
-            # Create a displacement shader
-            displacement_shader = cmds.shadingNode('displacementShader', asShader=True)
-            """
     
             # file nodes -> standard surface node
-            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # Connect baseColor file to material
-            cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
+            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # base color -> material (Base Color)
+            cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # roughness -> material (Specular Rougness)
             cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # bump2d -> material (Normal Camera)
             cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # normal -> bump2d
-
-            #cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
-            #cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
-            #
-            #cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
-            #cmds.connectAttr(f"{displacement_shader}.displacement", f"{shading_group}.displacementShader", force=True)
             
 
 def show():
