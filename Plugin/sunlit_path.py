@@ -84,13 +84,13 @@ class TextureFolderDialog(QtWidgets.QDialog):
 
     def select_folder(self):
 
-        folder = QtWidgets.QFileDialog.getExistingDirectory(
+        self.folder_path = QtWidgets.QFileDialog.getExistingDirectory(
             self,
             "Select Texture Folder"
         )
 
-        if folder:
-            self.filename_label.setText(folder)
+        if self.folder_path:
+            self.filename_label.setText(self.folder_path)
 
     def apply(self):
         selectedObject = self.getSelectedObjects() # TODO: this can be 1 or many, but assuming 1 for now
@@ -99,7 +99,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.warnings.setText("Must select a folder path to folder textures")
         else:
             mat_name = self.createTextures()
-            self.apply_textures(selectedObject, mat_name)
+            #self.apply_textures(selectedObject, mat_name)
 
     # =========================== APPLY LOGIC ===========================
 
@@ -112,7 +112,6 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.warnings.setText("")
             return selected_objects[0]
 
-    """
     def createTextures(self):
         global folder_path
         global texture_files
@@ -161,8 +160,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.createMaterial(material_name, baseColorFile, normalFile, roughnessFile, key)
 
         return result
-    """
-    """
+    
     # clean nodes for this texture
     def cleanNodes(self, texture_name):
         # get all nodes in the scene
@@ -172,18 +170,26 @@ class TextureFolderDialog(QtWidgets.QDialog):
         for node in all_nodes:
             if texture_name in node:
                 cmds.delete(node)
-    """
-    """
-    def createMaterial(material_name, baseColorFile,normalFile, roughnessFile, textureNum):
+
+        print(f"Cleaning {texture_name}")
+
+    def createMaterial(self, material_name, baseColorFile,normalFile, roughnessFile, textureNum):
+            print(f"Creating material: {material_name}")
+            
             # Create a new material
-            material = cmds.shadingNode('aiStandardSurface', asShader=True, name=material_name)
-            cmds.setAttr(f"{material}.diffuseRoughness", 0.000)
-            cmds.setAttr(f'{material}.emission', 1)
-            cmds.setAttr(f'{material}.emissionColor', 0, 0, 0, type='double3')
+            material = cmds.shadingNode('standardSurface', asShader=True, name=material_name)
             
             # Create a shading group
             shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name="set")
-    
+            cmds.connectAttr(material + '.outColor', shading_group + '.surfaceShader', force=True) # Connect material to shading group
+
+            # Create a file texture node for baseColor
+            baseColorNodeName = material_name + "_" + "BaseColor" + "_" + textureNum
+            baseColor_file_node = cmds.shadingNode('file', asTexture=True, name=baseColorNodeName)
+            baseColorFilePath = baseColorFile
+            cmds.setAttr(f"{baseColor_file_node}.fileTextureName", baseColorFilePath, type="string")
+
+            """
             # Create a place2dTexture node
             place2d_texture = cmds.shadingNode('place2dTexture', asUtility=True, name='place2dTexture')
             connections = [
@@ -206,13 +212,8 @@ class TextureFolderDialog(QtWidgets.QDialog):
                 ('outUV', 'uvCoord'),
                 ('outUvFilterSize', 'uvFilterSize')
             ]
-    
-            # Create a file texture node for baseColor
-            baseColorNodeName = material_name + "_" + "BaseColor" + "_" + textureNum
-            baseColor_file_node = cmds.shadingNode('file', asTexture=True, name=baseColorNodeName)
-            baseColorFilePath = baseColorFile
-            cmds.setAttr(f"{baseColor_file_node}.fileTextureName", baseColorFilePath, type="string")
-    
+
+            
             # Create a file texture node for Normal
             normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
             normal_file_node = cmds.shadingNode('file', asTexture=True, name=normalNodeName)
@@ -264,17 +265,19 @@ class TextureFolderDialog(QtWidgets.QDialog):
     
             # Create a displacement shader
             displacement_shader = cmds.shadingNode('displacementShader', asShader=True)
+            """
     
-            cmds.connectAttr(material + '.outColor', shading_group + '.surfaceShader', force=True) # Connect material to shading group
-            cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
-            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{multiply_divide_node}.input1", force=True) # Connect baseColor file to multiplyDivide
-            cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # Connect bump2d to Normal Camera of material
-            cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # Connect normal file to bump2d
-            cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
-            cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
-            cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
-            cmds.connectAttr(f"{displacement_shader}.displacement", f"{shading_group}.displacementShader", force=True)
-    """
+            
+            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{material}.baseColor", force=True) # Connect baseColor file to multiplyDivide
+
+            #cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
+            #cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # Connect bump2d to Normal Camera of material
+            #cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # Connect normal file to bump2d
+            #cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
+            #cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
+            #cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
+            #cmds.connectAttr(f"{displacement_shader}.displacement", f"{shading_group}.displacementShader", force=True)
+            
 
 def show():
     global texture_folder_dialog
