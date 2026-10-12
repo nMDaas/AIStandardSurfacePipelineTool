@@ -215,6 +215,9 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{normal_file_node}.alphaIsLuminance", True)
             cmds.setAttr(f'{normal_file_node}.colorSpace', 'Raw', type='string')
 
+            # Create a place2dTexture node
+            place2d_normal = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_normal_{material}')
+
             connections = [
                 ('coverage', 'coverage'),
                 ('translateFrame', 'translateFrame'),
@@ -241,10 +244,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
             for src, dest in connections:
                 cmds.connectAttr(f"{place2d_baseColor}.{src}", f"{baseColor_file_node}.{dest}", force=True)
                 cmds.connectAttr(f"{place2d_roughness}.{src}", f"{roughness_file_node}.{dest}", force=True)
-                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{normal_file_node}.{dest}", force=True)
-                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{metalness_file_node}.{dest}", force=True)
-                
-                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{height_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_normal}.{src}", f"{normal_file_node}.{dest}", force=True)
 
             """
             # Create a multiplyDivide node
