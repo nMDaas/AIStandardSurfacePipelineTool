@@ -189,31 +189,10 @@ class TextureFolderDialog(QtWidgets.QDialog):
             baseColorFilePath = baseColorFile
             cmds.setAttr(f"{baseColor_file_node}.fileTextureName", baseColorFilePath, type="string")
 
-            """
             # Create a place2dTexture node
-            place2d_texture = cmds.shadingNode('place2dTexture', asUtility=True, name='place2dTexture')
-            connections = [
-                ('coverage', 'coverage'),
-                ('translateFrame', 'translateFrame'),
-                ('rotateFrame', 'rotateFrame'),
-                ('mirrorU', 'mirrorU'),
-                ('mirrorV', 'mirrorV'),
-                ('stagger', 'stagger'),
-                ('wrapU', 'wrapU'),
-                ('wrapV', 'wrapV'),
-                ('repeatUV', 'repeatUV'),
-                ('offset', 'offset'),
-                ('rotateUV', 'rotateUV'),
-                ('noiseUV', 'noiseUV'),
-                ('vertexUvOne', 'vertexUvOne'),
-                ('vertexUvTwo', 'vertexUvTwo'),
-                ('vertexUvThree', 'vertexUvThree'),
-                ('vertexCameraOne', 'vertexCameraOne'),
-                ('outUV', 'uvCoord'),
-                ('outUvFilterSize', 'uvFilterSize')
-            ]
+            place2d_baseColor = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_baseColor_{material}')
 
-            
+            """
             # Create a file texture node for Normal
             normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
             normal_file_node = cmds.shadingNode('file', asTexture=True, name=normalNodeName)
@@ -245,15 +224,39 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{height_file_node}.fileTextureName", heightFilePath, type="string")
             cmds.setAttr(f"{height_file_node}.alphaIsLuminance", True)
             cmds.setAttr(f'{height_file_node}.colorSpace', 'Raw', type='string')
+            """
+
+            connections = [
+                ('coverage', 'coverage'),
+                ('translateFrame', 'translateFrame'),
+                ('rotateFrame', 'rotateFrame'),
+                ('mirrorU', 'mirrorU'),
+                ('mirrorV', 'mirrorV'),
+                ('stagger', 'stagger'),
+                ('wrapU', 'wrapU'),
+                ('wrapV', 'wrapV'),
+                ('repeatUV', 'repeatUV'),
+                ('offset', 'offset'),
+                ('rotateUV', 'rotateUV'),
+                ('noiseUV', 'noiseUV'),
+                ('vertexUvOne', 'vertexUvOne'),
+                ('vertexUvTwo', 'vertexUvTwo'),
+                ('vertexUvThree', 'vertexUvThree'),
+                ('vertexCameraOne', 'vertexCameraOne'),
+                ('outUV', 'uvCoord'),
+                ('outUvFilterSize', 'uvFilterSize')
+            ]
     
             # Connect place2dTexture node to file nodes
+            # place2d_baseColor --> baseColor_file_node
             for src, dest in connections:
-                cmds.connectAttr(f"{place2d_texture}.{src}", f"{baseColor_file_node}.{dest}", force=True)
-                cmds.connectAttr(f"{place2d_texture}.{src}", f"{normal_file_node}.{dest}", force=True)
-                cmds.connectAttr(f"{place2d_texture}.{src}", f"{metalness_file_node}.{dest}", force=True)
-                cmds.connectAttr(f"{place2d_texture}.{src}", f"{roughness_file_node}.{dest}", force=True)
-                cmds.connectAttr(f"{place2d_texture}.{src}", f"{height_file_node}.{dest}", force=True)
-            
+                cmds.connectAttr(f"{place2d_baseColor}.{src}", f"{baseColor_file_node}.{dest}", force=True)
+                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{normal_file_node}.{dest}", force=True)
+                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{metalness_file_node}.{dest}", force=True)
+                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{roughness_file_node}.{dest}", force=True)
+                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{height_file_node}.{dest}", force=True)
+
+            """
             # Create a multiplyDivide node
             multiply_divide_node = cmds.shadingNode('multiplyDivide', asUtility=True, name='multiplyDivide1')
             cmds.setAttr(f"{multiply_divide_node}.operation", 1) # Set operation as Multiply (1: multiply, 2: divide, 3: power)
