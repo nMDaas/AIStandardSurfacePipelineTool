@@ -199,6 +199,9 @@ class TextureFolderDialog(QtWidgets.QDialog):
             cmds.setAttr(f"{roughness_file_node}.fileTextureName", roughnessFilePath, type="string")
             cmds.setAttr(f'{roughness_file_node}.colorSpace', 'Raw', type='string')
 
+            # Create a place2dTexture node
+            place2d_roughness = cmds.shadingNode('place2dTexture', asUtility=True, name=f'place2dTexture_roughness_{material}')
+
             """
             # Create a file texture node for Normal
             normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
@@ -247,12 +250,13 @@ class TextureFolderDialog(QtWidgets.QDialog):
             ]
     
             # Connect all place2dTexture nodes to file nodes
-            # place2d_baseColor --> baseColor_file_node
+            # place2d_baseColor -> baseColor_file_node
             for src, dest in connections:
                 cmds.connectAttr(f"{place2d_baseColor}.{src}", f"{baseColor_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_roughness}.{src}", f"{roughness_file_node}.{dest}", force=True)
                 #cmds.connectAttr(f"{place2d_texture}.{src}", f"{normal_file_node}.{dest}", force=True)
                 #cmds.connectAttr(f"{place2d_texture}.{src}", f"{metalness_file_node}.{dest}", force=True)
-                #cmds.connectAttr(f"{place2d_texture}.{src}", f"{roughness_file_node}.{dest}", force=True)
+                
                 #cmds.connectAttr(f"{place2d_texture}.{src}", f"{height_file_node}.{dest}", force=True)
 
             """
