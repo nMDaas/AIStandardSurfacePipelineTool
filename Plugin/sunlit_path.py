@@ -13,6 +13,7 @@ from pathlib import Path
 from shiboken6 import wrapInstance
 from functools import wraps
 from PySide6 import QtWidgets
+import os
 
 class TextureFolderDialog(QtWidgets.QDialog):
 
@@ -93,7 +94,12 @@ class TextureFolderDialog(QtWidgets.QDialog):
 
     def apply(self):
         selectedObject = self.getSelectedObjects()
-        print(selectedObject)
+
+        if self.folder_path == "":
+            self.warnings.setText("Must select a folder path to folder textures")
+        else:
+            mat_name = self.createTextures()
+            self.apply_textures(selectedObject, mat_name)
 
     # =========================== APPLY LOGIC ===========================
 
@@ -106,6 +112,169 @@ class TextureFolderDialog(QtWidgets.QDialog):
             self.warnings.setText("")
             return selected_objects[0]
 
+    """
+    def createTextures(self):
+        global folder_path
+        global texture_files
+
+        # get all files in folder_path
+        texture_files = [f for f in os.listdir(self.folder_path) if os.path.isfile(os.path.join(self.folder_path, f))]
+        
+        result = ""
+
+        # organize texture_files by texture numbers
+        texture_groups = {}
+        for file in texture_files:
+            if file.endswith('.png'):
+                # get texture number
+                length = len(file)
+                strTemp = file[length - 8:] # texture number + .png
+                textureNum = strTemp[:4]
+
+                if textureNum in texture_groups:
+                    # textureNum exists, append file to the existing array
+                    texture_groups[textureNum].append(file)
+                else:
+                    # textureNum does not exist, initialize a new array with the value
+                    texture_groups[textureNum] = [file]
+        
+        # iterate through texture_groups and create textures
+        for key,value in texture_groups.items():
+            # extract name
+            my_string = value[0]
+            index = my_string.find('_')
+            result = my_string[:index]
+            material_name = result + key
+            #print("material_name", material_name)
+
+            for file in value:
+                if "BaseColor" in file:
+                    baseColorFile = file
+                if "Normal" in file:
+                    normalFile = file
+                if "Roughness" in file:
+                    roughnessFile = file
+
+            # clean previously created nodes with same name
+            self.cleanNodes(material_name)
+
+            self.createMaterial(material_name, baseColorFile, normalFile, roughnessFile, key)
+
+        return result
+    """
+    """
+    # clean nodes for this texture
+    def cleanNodes(self, texture_name):
+        # get all nodes in the scene
+        all_nodes = cmds.ls()
+
+        # Iterate through each node and delete its construction history
+        for node in all_nodes:
+            if texture_name in node:
+                cmds.delete(node)
+    """
+    """
+    def createMaterial(material_name, baseColorFile,normalFile, roughnessFile, textureNum):
+            # Create a new material
+            material = cmds.shadingNode('aiStandardSurface', asShader=True, name=material_name)
+            cmds.setAttr(f"{material}.diffuseRoughness", 0.000)
+            cmds.setAttr(f'{material}.emission', 1)
+            cmds.setAttr(f'{material}.emissionColor', 0, 0, 0, type='double3')
+            
+            # Create a shading group
+            shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name="set")
+    
+            # Create a place2dTexture node
+            place2d_texture = cmds.shadingNode('place2dTexture', asUtility=True, name='place2dTexture')
+            connections = [
+                ('coverage', 'coverage'),
+                ('translateFrame', 'translateFrame'),
+                ('rotateFrame', 'rotateFrame'),
+                ('mirrorU', 'mirrorU'),
+                ('mirrorV', 'mirrorV'),
+                ('stagger', 'stagger'),
+                ('wrapU', 'wrapU'),
+                ('wrapV', 'wrapV'),
+                ('repeatUV', 'repeatUV'),
+                ('offset', 'offset'),
+                ('rotateUV', 'rotateUV'),
+                ('noiseUV', 'noiseUV'),
+                ('vertexUvOne', 'vertexUvOne'),
+                ('vertexUvTwo', 'vertexUvTwo'),
+                ('vertexUvThree', 'vertexUvThree'),
+                ('vertexCameraOne', 'vertexCameraOne'),
+                ('outUV', 'uvCoord'),
+                ('outUvFilterSize', 'uvFilterSize')
+            ]
+    
+            # Create a file texture node for baseColor
+            baseColorNodeName = material_name + "_" + "BaseColor" + "_" + textureNum
+            baseColor_file_node = cmds.shadingNode('file', asTexture=True, name=baseColorNodeName)
+            baseColorFilePath = baseColorFile
+            cmds.setAttr(f"{baseColor_file_node}.fileTextureName", baseColorFilePath, type="string")
+    
+            # Create a file texture node for Normal
+            normalNodeName = material_name + "_" + "Normal" + "_" + textureNum
+            normal_file_node = cmds.shadingNode('file', asTexture=True, name=normalNodeName)
+            normalFilePath = normalFile
+            cmds.setAttr(f"{normal_file_node}.fileTextureName", normalFilePath, type="string")
+            cmds.setAttr(f"{normal_file_node}.alphaIsLuminance", True)
+            cmds.setAttr(f'{normal_file_node}.colorSpace', 'Raw', type='string')
+    
+            # Create a file texture node for Metalness
+            metalnessNodeName = material_name + "_" + "Metalness" + "_" + textureNum
+            metalness_file_node = cmds.shadingNode('file', asTexture=True, name=metalnessNodeName)
+            metalnessFilePath = metalnessFile
+            cmds.setAttr(f"{metalness_file_node}.fileTextureName", metalnessFilePath, type="string")
+            cmds.setAttr(f"{metalness_file_node}.alphaIsLuminance", True)
+            cmds.setAttr(f'{metalness_file_node}.colorSpace', 'Raw', type='string')
+    
+            # Create a file texture node for Roughness
+            roughnessNodeName = material_name + "_" + "Roughness" + "_" + textureNum
+            roughness_file_node = cmds.shadingNode('file', asTexture=True, name=roughnessNodeName)
+            roughnessFilePath = roughnessFile
+            cmds.setAttr(f"{roughness_file_node}.fileTextureName", roughnessFilePath, type="string")
+            cmds.setAttr(f"{roughness_file_node}.alphaIsLuminance", True)
+            cmds.setAttr(f'{roughness_file_node}.colorSpace', 'Raw', type='string')
+    
+            # Create a file texture node for Height
+            heightNodeName = material_name + "_" + "Height" + "_" + textureNum
+            height_file_node = cmds.shadingNode('file', asTexture=True, name=heightNodeName)
+            heightFilePath = heightFile
+            cmds.setAttr(f"{height_file_node}.fileTextureName", heightFilePath, type="string")
+            cmds.setAttr(f"{height_file_node}.alphaIsLuminance", True)
+            cmds.setAttr(f'{height_file_node}.colorSpace', 'Raw', type='string')
+    
+            # Connect place2dTexture node to file nodes
+            for src, dest in connections:
+                cmds.connectAttr(f"{place2d_texture}.{src}", f"{baseColor_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_texture}.{src}", f"{normal_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_texture}.{src}", f"{metalness_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_texture}.{src}", f"{roughness_file_node}.{dest}", force=True)
+                cmds.connectAttr(f"{place2d_texture}.{src}", f"{height_file_node}.{dest}", force=True)
+            
+            # Create a multiplyDivide node
+            multiply_divide_node = cmds.shadingNode('multiplyDivide', asUtility=True, name='multiplyDivide1')
+            cmds.setAttr(f"{multiply_divide_node}.operation", 1) # Set operation as Multiply (1: multiply, 2: divide, 3: power)
+            cmds.setAttr(f"{multiply_divide_node}.input2", 1, 1, 1, type="double3")
+    
+            # Create a bump2d node
+            bump2d_node = cmds.shadingNode('bump2d', asUtility=True, name='bump2d1')
+            cmds.setAttr(bump2d_node + '.bumpInterp', 1)
+    
+            # Create a displacement shader
+            displacement_shader = cmds.shadingNode('displacementShader', asShader=True)
+    
+            cmds.connectAttr(material + '.outColor', shading_group + '.surfaceShader', force=True) # Connect material to shading group
+            cmds.connectAttr(f"{multiply_divide_node}.output", f"{material}.baseColor", force=True) # Connect multiplyDivide to material
+            cmds.connectAttr(f"{baseColor_file_node}.outColor", f"{multiply_divide_node}.input1", force=True) # Connect baseColor file to multiplyDivide
+            cmds.connectAttr(f"{bump2d_node}.outNormal", f"{material}.normalCamera", force=True) # Connect bump2d to Normal Camera of material
+            cmds.connectAttr(f"{normal_file_node}.outAlpha", f"{bump2d_node}.bumpValue", force=True) # Connect normal file to bump2d
+            cmds.connectAttr(f"{metalness_file_node}.outAlpha", f"{material}.metalness", force=True) # Connect metalness file to material
+            cmds.connectAttr(f"{roughness_file_node}.outAlpha", f"{material}.specularRoughness", force=True) # Connect roughness file to material
+            cmds.connectAttr(f"{height_file_node}.outAlpha", f"{displacement_shader}.displacement", force=True) 
+            cmds.connectAttr(f"{displacement_shader}.displacement", f"{shading_group}.displacementShader", force=True)
+    """
 
 def show():
     global texture_folder_dialog
