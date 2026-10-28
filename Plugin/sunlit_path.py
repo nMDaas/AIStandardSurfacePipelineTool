@@ -120,7 +120,6 @@ class TextureFolderDialog(QtWidgets.QDialog):
         texture_files = [
             f for f in os.listdir(self.folder_path)
             if os.path.isfile(os.path.join(self.folder_path, f))
-            and f.endswith('.png')
             and objName in f
         ]
 
