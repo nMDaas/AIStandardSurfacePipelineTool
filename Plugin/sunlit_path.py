@@ -129,7 +129,7 @@ class TextureFolderDialog(QtWidgets.QDialog):
         texture_groups = {}
 
         for file in texture_files:
-            strTemp = file[-8:]  # texture number + .png
+            strTemp = file[-8:]  # texture number + .png (still needed even if .png does not exist in file name)
             textureNum = strTemp[:4]
 
             if textureNum not in texture_groups:
